@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>리포랩 3기 Day 1 워크북</title>
+<meta name="description" content="Agentic AI, AWS, Claude Code 실습을 공식 문서로 검증·보강한 Day 1 워크북 (부서 공유용)">
+<link rel="stylesheet" href="../../assets/lipolab.css">
+</head>
+<body>
+<div class="layout">
+
+<aside class="toc" aria-label="목차">
+  <b>WORKBOOK 목차</b>
+  <a href="#guide">0. 읽는 법</a>
+  <a href="#p1">1. Agentic AI</a>
+  <a class="sub" href="#q1">내 질문: 확률 생성</a>
+  <a class="sub" href="#context">Context와 Harness</a>
+  <a class="sub" href="#mcp">MCP</a>
+  <a href="#p2">2. AWS</a>
+  <a class="sub" href="#agentcore">AgentCore 12 구성요소</a>
+  <a class="sub" href="#s3cf">S3 · CloudFront 수치</a>
+  <a href="#p3">3. Claude Code</a>
+  <a class="sub" href="#settings">설정 · 권한 · effort</a>
+  <a class="sub" href="#ext">확장 기능 5종</a>
+  <a class="sub" href="#hooks">Hooks 자세히</a>
+  <a class="sub" href="#skills">Skills · Sub-agents</a>
+  <a class="sub" href="#plugin">Plugin · 세션</a>
+  <a href="#labs">4. 실습 가이드</a>
+  <a href="#noaws">5. 비AWS 환경 대안</a>
+  <a href="#verify">6. 노트 검증표</a>
+  <a href="#review">7. 복습 문제</a>
+  <a href="#unknown">8. 확인하지 못한 항목</a>
+  <a href="#sources">9. 출처</a>
+</aside>
+
+<main>
+<header class="hero">
+  <div class="eyebrow">리포랩 3기 · DAY 1 WORKBOOK</div>
+  <h1>Agentic AI에서 Claude Code 실습까지,<br>공식 문서로 검증한 정리본</h1>
+  <p class="lead">강의 노트의 내용을 개념별로 재구성하고, 공식 문서로 확인한 사실을 덧붙였습니다. 부서 동료와 같은 실습을 따라 해볼 수 있도록 실습 가이드도 담았습니다.</p>
+  <div class="meta">
+    <span class="chip">2026-10-15</span>
+    <span class="chip">자료 확인일 2026-10-16</span>
+    <a class="chip" href="../../index.html#day1/summary" target="_top" style="text-decoration:none">요약본 보기</a>
+  </div>
+</header>
+
+<!-- 0 -->
+<section id="guide">
+  <div class="part">GUIDE</div>
+  <h2>0. 이 워크북 읽는 법</h2>
+  <div class="box note">
+    <h4>알아두실 점</h4>
+    <ul>
+      <li>공식 페이지는 도구로 내용을 요약·추출해서 읽었습니다. 수치와 버전 번호는 <b>배포 전에 원문과 한 번 더 대조</b>해 주세요. 출처 링크는 9장에 있습니다.</li>
+      <li>원본 노트에 삽입된 이미지(아키텍처 그림, 훅 예시, 이벤트 목록 등)는 읽지 못해서 반영하지 못했습니다.</li>
+      <li>노트 헤더에는 10월 16일로 적혀 있으나, 파일명(261015)과 교육 진행 시점에 맞춰 10월 15일로 표기했습니다.</li>
+      <li>Claude Code와 AWS 문서는 버전별로 자주 바뀝니다. 아래 내용은 2026-10-16 확인 기준입니다.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 1 -->
+<section id="p1">
+  <div class="part">PART 1</div>
+  <h2>1. Agentic AI — "팀장이 똑똑해야 팀원을 잘 시킨다"</h2>
+  <div class="one">Agent = 모델(두뇌) + 컨텍스트(재료) + 도구(손발) + 반복 루프(일하는 방식), 그리고 사람의 검수</div>
+
+  <h3>1-1. 모델에서 Agent까지</h3>
+  <div class="tw"><table>
+    <thead><tr><th>단계</th><th>하는 일</th><th>IT에 빗대면</th></tr></thead>
+    <tbody>
+      <tr><td>ML / DL</td><td>학습한 내용을 바탕으로 <b>예측</b>까지</td><td>분류기, 추천 모델</td></tr>
+      <tr><td>생성형 AI</td><td>학습한 내용으로 <b>생성</b>까지. 확률을 기반으로 함</td><td>자동완성의 확장판</td></tr>
+      <tr><td>Agent</td><td>도구를 골라 쓰며 <b>목표 달성까지 반복</b></td><td>오케스트레이터가 붙은 워크플로 엔진</td></tr>
+    </tbody>
+  </table></div>
+  <p>학습에는 한계가 있어서, 인간의 인지·학습 과정이 결국 필요해진다는 맥락에서 "learning"을 짚었습니다. Agent가 한 일은 검토·검수하는 loop가 필요하고, 이것이 Human Role입니다.</p>
+  <p>Claude Code 용어집은 이 검수를 <b>Verification loop</b>로 부릅니다. 테스트나 빌드처럼 Claude가 직접 돌릴 수 있는 확인 수단을 주고, 통과할 때까지 반복하게 하는 방식입니다. 이 확인 수단이 없으면 "끝났다"를 판단하는 것은 Agent 자신뿐입니다.</p>
+
+  <div class="diagram">
+    <svg viewBox="0 0 760 190" role="img" aria-label="Agent 루프: 요청, 모델 판단, 도구 호출, 결과, 반복, 사람 검수">
+      <defs><marker id="ar" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="var(--muted)"/></marker></defs>
+      <g font-size="14.5" text-anchor="middle" fill="var(--ink)">
+        <rect x="10" y="55" width="110" height="56" rx="12" fill="var(--surface)" stroke="var(--line)"/><text x="65" y="88">사용자 목표</text>
+        <rect x="160" y="55" width="130" height="56" rx="12" fill="var(--accent-soft)" stroke="var(--accent)"/><text x="225" y="88">모델이 판단</text>
+        <rect x="330" y="55" width="130" height="56" rx="12" fill="var(--accent-soft)" stroke="var(--accent)"/><text x="395" y="88">도구 선택·호출</text>
+        <rect x="500" y="55" width="110" height="56" rx="12" fill="var(--surface)" stroke="var(--line)"/><text x="555" y="88">결과 관찰</text>
+        <rect x="650" y="55" width="100" height="56" rx="12" fill="var(--warm-soft)" stroke="var(--warm)"/><text x="700" y="88">사람 검수</text>
+      </g>
+      <g stroke="var(--muted)" stroke-width="2" fill="none" marker-end="url(#ar)">
+        <path d="M120 83 H156"/><path d="M290 83 H326"/><path d="M460 83 H496"/><path d="M610 83 H646"/>
+      </g>
+      <path d="M555 111 V150 H225 V115" stroke="var(--accent)" stroke-width="2" fill="none" stroke-dasharray="6 5" marker-end="url(#ar)"/>
+      <text x="390" y="176" font-size="13" text-anchor="middle" fill="var(--accent)">목표 달성까지 반복 → 호출이 늘면 토큰 과금도 늘어남</text>
+    </svg>
+  </div>
+  <p>용어집의 Agentic loop 정의는 "맥락 수집 → 행동 → 결과 검증을 끝날 때까지 반복"이며, 노트의 루프 설명과 같은 구조입니다.</p>
+
+  <h3 id="q1">1-2. 내가 남긴 질문: "앞의 내용이 정해지지 않으면 뒤의 데이터가 확정되지 않는가?"</h3>
+  <p>생성형 AI는 '확률'을 기반으로 한다는 설명 뒤에 남기신 질문입니다.</p>
+  <div class="card">
+    <h4>답: 맞습니다. 그리고 "확정"이 두 겹으로 나뉩니다.</h4>
+    <ol class="tight">
+      <li><b>분포는 앞이 정해지면 정해집니다.</b> 모델은 지금까지의 토큰을 조건으로, 다음에 올 수 있는 모든 토큰에 점수(확률)를 매깁니다. 예를 들어 "하늘은 ___" 뒤에 "파랗다 62%, 맑다 21%…" 같은 목록이 나옵니다. </li>
+      <li><b>그 목록에서 실제로 하나를 뽑는 단계(샘플링)가 확률적입니다.</b> 확률이 낮은 토큰도 뽑힐 수 있고, 한 번 다른 토큰이 뽑히면 이후 문장이 갈라질 수 있습니다. </li>
+      <li><b>temperature는 이 목록의 모양을 바꾸는 손잡이입니다.</b> 0에 가까우면 상위 토큰이 지배해 결과가 거의 같아지고, 높이면 낮은 확률의 토큰이 더 자주 뽑혀 다양해집니다. </li>
+    </ol>
+    <p><b>실무 의미 </b> temperature를 낮추면 <b>재현성</b>은 좋아지지만 <b>정확성</b>이 보장되지는 않습니다. 모델의 1순위 답이 틀렸다면 낮은 temperature는 같은 오답을 매번 내놓습니다. 그래서 RAG로 근거를 붙이고, 평가셋과 검증 loop로 확인해야 합니다.</p>
+    <p>IT 비유: 해시 함수처럼 "같은 입력은 항상 같은 출력"이 아니라, 가중치가 걸린 주사위를 매 글자마다 굴리는 구조에 가깝습니다. 주사위의 눈 확률은 앞 글자가 정하고, 실제 눈은 굴려야 나옵니다.</p>
+  </div>
+  <div class="box note">
+    <h4>근거의 한계</h4>
+    <p style="margin:0">위 설명은 교육용 해설 문서(KodeKloud) 한 곳에서 확인했습니다. Anthropic 플랫폼 용어집 접근은 승인되지 않아 읽지 못했고, <b>Claude 최신 모델의 temperature 파라미터 동작과 기본값은 확인하지 못했습니다.</b></p>
+  </div>
+
+  <h3 id="context">1-3. Context와 Harness</h3>
+  <div class="tw"><table>
+    <thead><tr><th>구성요소</th><th>노트 정리</th><th>보강</th></tr></thead>
+    <tbody>
+      <tr><td>프롬프트</td><td>모델에 내리는 명령</td><td></td></tr>
+      <tr><td>시스템 프롬프트</td><td>모델에 역할을 부여</td><td>Claude Code는 시작 시 핵심 지침을 가장 먼저 로드합니다.</td></tr>
+      <tr><td>도구 정보</td><td>도구에 설명(schema, spec)을 붙이고, 쓸지 말지는 모델이 결정</td><td>MCP 도구는 이름만 먼저 올리고 전체 schema는 필요할 때 불러옵니다(MCP Tool Search). 도구가 많아도 컨텍스트가 덜 차도록 한 장치입니다.</td></tr>
+      <tr><td>RAG 문서</td><td>명령에 대한 "답안지"</td><td></td></tr>
+      <tr><td>단기 메모리</td><td>세션 대화 = context window</td><td>컨텍스트가 한계에 가까워지면 오래된 도구 출력부터 지우고, 그다음 대화를 요약합니다(<b>compaction</b>). 노트의 "confection"은 이 compaction으로 보입니다.</td></tr>
+      <tr><td>장기 메모리</td><td>세션을 넘어 기억하는 것</td><td>Claude Code는 <b>CLAUDE.md</b>(내가 쓰는 지침)와 <b>auto memory</b>(Claude가 스스로 적는 메모, 시작 시 앞 200줄 또는 25KB 로드)로 세션 사이를 잇습니다.</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="box fix">
+    <h4>용어 정리: "harness"는 두 가지 뜻으로 쓰였습니다</h4>
+    <ul>
+      <li><b>일반 개념</b> 모델을 유능한 Agent로 만드는 도구, 컨텍스트 관리, 실행 환경의 묶음. 용어집은 "Claude Code가 harness, Claude는 그 안의 모델"이라고 설명합니다.</li>
+      <li><b>AgentCore의 Harness 기능</b> 모델, 시스템 프롬프트, 도구를 지정해 API 한 번으로 Agent를 정의·호출하는 관리형 Agent 루프. 세션마다 격리된 microVM에서 실행됩니다.</li>
+    </ul>
+    <p style="margin:6px 0 0">IT 비유: 앞의 것은 "프레임워크"라는 개념이고, 뒤의 것은 그 프레임워크를 관리형으로 제공하는 "PaaS 상품"입니다. 노트의 두 설명은 서로 모순되지 않습니다.</p>
+  </div>
+
+  <h3>1-4. RAG</h3>
+  <p>RAG는 근거와 domain knowledge를 보완합니다. 약관·FAQ 같은 문서는 VectorDB에 저장해 두고, 질문이 들어오면 관련 내용을 찾아 근거를 남기며 답합니다.</p>
+  <p>IT 비유: 시험을 "오픈북"으로 치르는 것과 같습니다. 모델이 외운 것 대신, 찾아본 근거로 답하게 합니다.</p>
+
+  <h3 id="mcp">1-5. MCP</h3>
+  <p>MCP는 Agent의 통합 규격(표준)입니다.</p>
+  <ul class="tight">
+    <li>Claude Code 용어집: AI 도구를 외부 데이터 소스·서비스와 연결하는 <b>개방형 표준</b>. MCP 서버는 <code>/mcp</code>, <code>claude mcp add</code>, <code>.mcp.json</code>, 플러그인으로 연결합니다.</li>
+    <li>Anthropic이 2024-11-25에 공개했고, 2025-12에 Linux Foundation 산하 Agentic AI Foundation(AAIF)으로 기부되었다고 합니다(위키백과 요약).</li>
+    <li>같은 문서에 따르면 최신 spec 개정이 2026-07-28에 확정되었고, 프로토콜 수준의 세션 추적을 없애 stateless로 바뀌었으며 sampling과 roots는 deprecated입니다. <b>공식 spec 원문으로는 확인하지 못했으니 도입 전에 확인이 필요합니다.</b></li>
+    <li>IT 비유: USB-C 포트. 어떤 Agent든, 어떤 도구든 같은 규격으로 꽂으면 동작합니다.</li>
+  </ul>
+</section>
+
+<!-- 2 -->
+<section id="p2">
+  <div class="part">PART 2</div>
+  <h2>2. AWS — Agent를 올리고 굴리는 인프라</h2>
+
+  <h3>2-1. 서비스 지도</h3>
+  <div class="tw"><table>
+    <thead><tr><th>서비스</th><th>노트</th><th>보강</th></tr></thead>
+    <tbody>
+      <tr><td>Bedrock</td><td>(비어 있음) Model Catalog, Knowledge Bases, Guardrails, AgentCore를 소개</td><td>Claude Code를 Bedrock에서 쓰려면 Model catalog에서 Anthropic 모델의 use case 양식을 한 번 제출해야 합니다. 이후 접근이 즉시 허용됩니다.</td></tr>
+      <tr><td>Model ID</td><td>Model ID만 바꾸면 모델 교체 가능</td><td>Claude Code 설정에서도 모델을 ID로 고정(pin)합니다. 여러 사용자에게 배포할 때는 고정을 권장합니다.</td></tr>
+      <tr><td>EC2</td><td>Computing server</td><td></td></tr>
+      <tr><td>Lambda</td><td>서버리스. AgentCore 뒤에 붙이기</td><td>AgentCore <b>Gateway</b>가 API와 Lambda 함수를 MCP 호환 도구로 바꿔 줍니다. "AgentCore 뒤에 Lambda를 붙인다"는 말은 이 구조를 가리키는 것으로 보입니다.</td></tr>
+      <tr><td>S3</td><td>Storage. 비슷한 DB로 DynamoDB, OpenSearch(VectorDB)</td><td>2-3절에서 수치 정정</td></tr>
+      <tr><td>Polly, Rekognition, Textract</td><td>(Polly 비어 있음) Rekognition=이미지, Textract=텍스트 추출</td><td>이번 조사 범위에 넣지 않았습니다.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 id="agentcore">2-2. AgentCore — 노트는 5개, 공식 문서는 12개</h3>
+  <p>gateway, runtime, harness, policy &amp; identity, payments를 다뤘습니다. AgentCore 소개 페이지에는 아래 12개 구성요소가 나와 있습니다. 페이지에 GA/프리뷰 표기는 없어서 <b>출시 상태는 확인하지 못했습니다.</b></p>
+  <div class="tw"><table>
+    <thead><tr><th>구성요소</th><th>역할 (공식 문서 기준)</th><th>노트</th></tr></thead>
+    <tbody>
+      <tr><td>Harness</td><td>API 한 번으로 Agent를 정의·호출하는 관리형 루프. 세션마다 격리 microVM</td><td>다룸</td></tr>
+      <tr><td>Runtime</td><td>동적 Agent와 도구를 배포·확장하는 서버리스 환경. 세션 격리, 내장 identity</td><td>다룸</td></tr>
+      <tr><td>Gateway</td><td>API, Lambda, 기존 서비스를 MCP 호환 도구로 변환하고 기존 MCP 서버에 연결</td><td>다룸</td></tr>
+      <tr><td>Identity</td><td>Agent의 신원·접근·인증. 기존 IdP와 연동</td><td>다룸</td></tr>
+      <tr><td>Policy</td><td>Agent가 벗어나지 못하게 하는 결정적 제어. 자연어 또는 Cedar로 규칙 작성, Gateway가 모든 도구 호출을 실행 전에 가로챔</td><td>다룸</td></tr>
+      <tr><td>Payments</td><td>x402, MPP 프로토콜 기반 소액 결제. 지갑 연동, 지출 한도 설정</td><td>다룸</td></tr>
+      <tr><td>Memory</td><td>단기(멀티턴)·장기(세션 간) 메모리, Agent 간 공유 가능</td><td>빠짐</td></tr>
+      <tr><td>Code Interpreter</td><td>코드를 실행하는 격리 샌드박스</td><td>빠짐</td></tr>
+      <tr><td>Browser</td><td>Agent가 웹앱을 조작하는 클라우드 브라우저 런타임</td><td>빠짐</td></tr>
+      <tr><td>Observability</td><td>추적·디버깅·모니터링, OpenTelemetry 호환</td><td>빠짐</td></tr>
+      <tr><td>Evaluations</td><td>배포 전후 Agent 성능의 자동 평가</td><td>빠짐</td></tr>
+      <tr><td>Optimization / Registry</td><td>AI 추천 기반 개선과 A/B 테스트 / Agent·MCP·스킬을 모으는 중앙 카탈로그</td><td>빠짐</td></tr>
+    </tbody>
+  </table></div>
+  <p>노트에서 빠진 <b>Evaluations, Observability, Policy</b>는 PoC를 운영으로 넘길 때 가장 먼저 필요해지는 항목입니다. Pre-workshop에서 짚었던 "검증과 평가셋"과 직접 연결됩니다.</p>
+
+  <h3 id="s3cf">2-3. S3와 CloudFront — 노트의 수치 확인</h3>
+  <div class="tw"><table>
+    <thead><tr><th>노트의 표현</th><th>확인 결과</th></tr></thead>
+    <tbody>
+      <tr><td>"bucket 1개 50TB (무제한)"</td><td><span class="v-fix">정정</span> AWS FAQ: 객체 1개의 크기는 0바이트에서 <b>최대 50TB</b>이고, 저장할 수 있는 총 용량과 객체 수는 <b>제한이 없습니다</b>. 단일 PUT은 최대 5GB이며 100MB 넘는 객체는 multipart 업로드를 권장합니다. 즉 50TB는 bucket이 아니라 객체 기준입니다.</td></tr>
+      <tr><td>"CF 데이터센터 전세계 800여개"</td><td><span class="v-part">대체로 일치</span> CloudFront 소개 페이지: <b>750+ POP</b>(100+ 도시, 50+ 국가), 리전 엣지 캐시 15개, 별도로 embedded POP 1,140+개. 페이지에 기준일은 없습니다.</td></tr>
+      <tr><td>"국내 10여개"</td><td><span class="v-no">확인하지 못함</span> 공식 페이지는 서울을 POP 도시로 올려놨지만 한국의 개수는 밝히지 않았습니다.</td></tr>
+      <tr><td>"CF = CDN = 캐시 서버"</td><td><span class="v-ok">맞음</span> 사용자와 가까운 거점에 복사본을 두는 방식입니다.</td></tr>
+    </tbody>
+  </table></div>
+  <div class="box src">
+    <h4>정적 웹사이트 실습 시 알아둘 점 </h4>
+    <ul>
+      <li>CloudFront와 S3 <b>웹사이트 엔드포인트</b> 사이의 연결은 HTTP만 가능합니다(AWS re:Post). 사용자에게 HTTPS를 주려면 CloudFront의 Viewer Protocol Policy를 "Redirect HTTP to HTTPS" 또는 "HTTPS only"로 설정합니다.</li>
+      <li>커스텀 도메인을 쓸 때 ACM 인증서는 <b>us-east-1 리전</b>의 것이어야 합니다.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 3 -->
+<section id="p3">
+  <div class="part">PART 3</div>
+  <h2>3. Claude Code — 설정하고 확장하기</h2>
+  <p>사용 환경은 CLI가 기능이 조금 더 많다고 했습니다. 용어집에서는 CLI, VS Code, JetBrains, Desktop, claude.ai를 모두 "surface"라 부르며 <b>같은 엔진</b>을 공유한다고 설명합니다. 다만 기능 지원 범위는 surface마다 다를 수 있어, 이번 조사에서 항목별 차이를 비교하지는 못했습니다.</p>
+
+  <h3 id="settings">3-1. 기본 설정 명령</h3>
+  <div class="tw"><table>
+    <thead><tr><th>명령</th><th>공식 문서 설명</th></tr></thead>
+    <tbody>
+      <tr><td><code>/model</code></td><td>모델 선택. 별칭 <code>opus</code>, <code>sonnet</code>, <code>haiku</code>, <code>fable</code>, 그리고 <code>opusplan</code>(계획 단계는 opus, 실행은 sonnet). 별칭이 가리키는 버전은 제공 업체(provider)마다 다릅니다.</td></tr>
+      <tr><td><code>/effort</code></td><td>적응형 추론의 깊이. 수준은 low, medium, high, xhigh, max. "표에 없는 모델은 effort를 지원하지 않음"</td></tr>
+      <tr><td><code>/compact</code></td><td>지금까지의 대화를 요약해 컨텍스트를 확보합니다. 노트의 이 항목은 비어 있었습니다.</td></tr>
+      <tr><td><code>/clear</code></td><td>빈 컨텍스트로 새 대화를 시작합니다(별칭 /reset, /new). 이전 대화는 <code>/resume</code>으로 불러올 수 있습니다.</td></tr>
+      <tr><td><code>/init</code>, <code>/memory</code></td><td><code>/init</code>은 CLAUDE.md 초안을 만들고, <code>/memory</code>는 CLAUDE.md 편집과 auto memory 관리를 합니다.</td></tr>
+      <tr><td><code>/code-review</code></td><td>현재 diff를 점검해 정확성 버그를 찾습니다. <b><code>/review</code>는 이것의 별칭</b>입니다. 노트의 "바꾼 곳만 점검(as-is, to-be 비교)"과 맞습니다.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h4>effort — 노트의 두 주장 확인</h4>
+  <ul class="tight">
+    <li>"보통 새로 나온 모델들만 적용" → <span class="v-ok">맞음</span> 목록에 있는 모델만 지원합니다.</li>
+    <li>"opus medium" → <span class="v-ok">맞음</span> Opus 5.5, Sonnet 5.5, Haiku 5.5의 기본값이 medium이고, 문서는 Opus 5.5의 medium이 Opus 5의 high와 코딩·지식업무 평가에서 같거나 낫다고 밝힙니다.</li>
+    <li>"ex-high는 자가당착에 빠지는 경우가 많다" → <span class="v-part">부분 일치</span> 문서가 "overthinking" 경향을 경고하는 것은 <b>max</b>입니다("점진적 이득이 줄고 과하게 생각하기 쉬우니 넓게 쓰기 전에 테스트"). xhigh는 "더 깊은 추론, 더 큰 토큰 비용"으로만 설명됩니다.</li>
+  </ul>
+
+  <h4>권한 모드</h4>
+  <p>"최근의 default = auto mode(명령 자동 수행). 위험한 작업은 권한 모드로 진행하는 것이 안전."</p>
+  <div class="tw"><table>
+    <thead><tr><th>모드</th><th>묻지 않고 실행하는 것</th><th>적합한 상황</th></tr></thead>
+    <tbody>
+      <tr><td><code>default</code> (CLI에서는 Manual)</td><td>읽기만</td><td>모든 동작을 직접 검토, 민감한 작업</td></tr>
+      <tr><td><code>acceptEdits</code></td><td>읽기, 파일 편집, 일반 파일시스템 명령</td><td>검토하며 코드를 다듬을 때</td></tr>
+      <tr><td><code>plan</code></td><td>조사·제안만. 소스 편집 없이 계획 승인 후 진행</td><td>작업 전 계획 점검</td></tr>
+      <tr><td><code>auto</code></td><td>별도 분류 모델이 대신 검토하고 대부분 실행</td><td>자동 수행이 편한 작업</td></tr>
+      <tr><td><code>dontAsk</code> / <code>bypassPermissions</code></td><td>(각각 거부 / 모두 허용)</td><td>샌드박스나 컨테이너 등 격리 환경</td></tr>
+    </tbody>
+  </table></div>
+  <ul class="tight">
+    <li><b>Shift+Tab</b>으로 모드를 순환합니다. 이때 auto에서 한 번 누르면 default로, 이후 default → acceptEdits → plan 순입니다. Plan은 <code>/plan</code>으로도 진입합니다.</li>
+    <li><span class="v-ok">노트와 일치</span> v2.1.283 이상에서 auto가 대화형 터미널·VS Code 세션의 <b>시작 모드</b>입니다(이전 버전은 Pro·Max·Team 요금제에 한함). 주의: 설정값 이름 <code>default</code>는 시작 모드가 아니라 Manual을 뜻합니다. 또한 조직 정책으로 auto가 꺼질 수 있습니다.</li>
+  </ul>
+
+  <h3 id="ext">3-2. 확장 기능 5종 한눈에 비교</h3>
+  <p>노트에서 따로따로 나온 CLAUDE.md, Hooks, Skills, Sub-agents, Plugin을 "무엇을 통제하는가" 기준으로 묶었습니다. 개념 이름은 제가 붙였고, 각 칸의 사실은 공식 문서에서 확인했습니다.</p>
+  <div class="tw"><table>
+    <thead><tr><th></th><th>CLAUDE.md</th><th>Hooks</th><th>Skills</th><th>Sub-agents</th><th>Plugin</th></tr></thead>
+    <tbody>
+      <tr><td>성격</td><td>지침</td><td>강제</td><td>절차</td><td>위임</td><td>묶음 배포</td></tr>
+      <tr><td>형식</td><td>마크다운</td><td>JSON 설정</td><td>SKILL.md (마크다운 + YAML)</td><td>마크다운 + YAML</td><td>폴더 + manifest</td></tr>
+      <tr><td>실행 보장</td><td>없음. 컨텍스트로 읽힘</td><td>있음. 지정 시점에 반드시 실행</td><td>모델이 판단하거나 /이름 호출</td><td>모델이 위임하거나 직접 지정</td><td>포함된 구성요소에 따름</td></tr>
+      <tr><td>IT 비유 </td><td>코딩 컨벤션 문서</td><td>pre-commit hook, CI 게이트</td><td>런북, 재사용 함수</td><td>워커 프로세스</td><td>npm 패키지</td></tr>
+    </tbody>
+  </table></div>
+  <p>핵심 문장: CLAUDE.md는 "컨텍스트이지 강제되는 설정이 아니다. 어떤 결정을 하든 동작을 막으려면 PreToolUse hook을 쓰라."</p>
+
+  <h4>CLAUDE.md</h4>
+  <ul class="tight">
+    <li>강의: 위치에 따라 적용 범위가 달라진다.</li>
+    <li>범위는 세 층입니다. 관리 정책(조직 전체, 예: Linux는 <code>/etc/claude-code/CLAUDE.md</code>), 사용자(<code>~/.claude/CLAUDE.md</code>), 프로젝트(<code>./CLAUDE.md</code> 또는 <code>./.claude/CLAUDE.md</code>). 발견된 파일은 덮어쓰지 않고 <b>이어 붙여서</b> 컨텍스트에 들어갑니다(넓은 범위에서 좁은 범위 순). 하위 폴더의 파일은 필요할 때 로드됩니다.</li>
+    <li>파일당 <b>200줄 이하</b> 권장. 길수록 컨텍스트를 더 쓰고 준수율이 떨어집니다. 서로 모순되는 지침이 있으면 Claude가 임의로 하나를 고를 수 있습니다.</li>
+    <li>프로젝트 루트의 CLAUDE.md는 compaction 뒤에도 디스크에서 다시 읽혀 살아남습니다. <b>대화 속에서만 준 지시는 사라질 수 있습니다.</b></li>
+    <li>"md 파일은 Claude로 만들어낼 수 있다" → <code>/init</code>이 코드베이스를 분석해 초안을 만들어 줍니다.</li>
+  </ul>
+
+  <h3 id="hooks">3-3. Hooks 자세히</h3>
+  <p>Hook은 강제, JSON으로 작성. 예시 해석: "도구를 사용한 후에(PostToolUse), 파일을 쓰고 고치는 도구를 불러서(matcher), 개인정보를 수정".</p>
+  <p>구조는 <b>이벤트 → matcher → handler</b> 3단계입니다. 아래는 공식 문서의 PostToolUse 예시이며, Write 또는 Edit 호출 뒤에 점검 스크립트를 실행합니다. 노트의 해석과 같은 구조입니다.</p>
+  <div class="pw"><button class="copy" type="button">복사</button><pre><code>{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/lint-check.sh",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}</code></pre></div>
+  <div class="grid2">
+    <div class="card"><h4>handler 종류 </h4><p style="margin:0"><code>command</code>(쉘), <code>http</code>, <code>mcp_tool</code>, <code>prompt</code>(LLM), <code>agent</code>(서브에이전트). 입력은 stdin으로 JSON이 들어옵니다(tool_name, tool_input 등).</p></div>
+    <div class="card"><h4>종료 코드 </h4><p style="margin:0"><b>exit 2만 차단</b>합니다(PreToolUse는 도구 호출을 막음). exit 1은 차단하지 않습니다. 정책을 강제하려면 반드시 exit 2를 쓰세요.</p></div>
+  </div>
+  <div class="box fix">
+    <h4>설계 시 주의: "개인정보 수정"을 PostToolUse에 걸면 무엇이 되나</h4>
+    <p style="margin:0">PostToolUse에서 exit 2는 "도구가 이미 실행된 뒤라서" 오류 메시지를 Claude에게 보여 줄 뿐입니다. 따라서 <b>개인정보가 파일에 쓰이는 것 자체를 막으려면 PreToolUse</b>, 쓴 뒤 정정·정리를 시키려면 PostToolUse가 맞습니다. 금융 환경이라면 어느 쪽 요구인지 먼저 정하세요.</p>
+  </div>
+  <h4>이벤트 종류 (노트에서는 이미지로만 제시)</h4>
+  <p>문서에는 30개 이상의 이벤트가 있습니다. 자주 쓰는 것만 묶었습니다.</p>
+  <div class="tw"><table>
+    <thead><tr><th>구분</th><th>이벤트</th></tr></thead>
+    <tbody>
+      <tr><td>세션</td><td>SessionStart, SessionEnd, Stop(응답 완료), StopFailure</td></tr>
+      <tr><td>입력</td><td>UserPromptSubmit(프롬프트 제출 직후 처리 전), UserPromptExpansion</td></tr>
+      <tr><td>도구</td><td>PreToolUse, PostToolUse, PostToolUseFailure, PostToolBatch, PermissionRequest, PermissionDenied</td></tr>
+      <tr><td>위임·작업</td><td>SubagentStart, SubagentStop, TaskCreated, TaskCompleted</td></tr>
+      <tr><td>컨텍스트·설정</td><td>PreCompact, PostCompact, InstructionsLoaded, ConfigChange, FileChanged</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3 id="skills">3-4. Skills와 Sub-agents</h3>
+  <h4>Skills</h4>
+  <p>도구 절차를 규칙으로 만든 것. <code>/이름</code> 호출과 description 기반 자동 호출 두 가지. frontmatter의 name이 호출명, description이 "언제 쓰는지".</p>
+  <p>위 내용은 공식 문서에서도 확인됩니다. 추가로 알아둘 점:</p>
+  <ul class="tight">
+    <li>위치: 개인 <code>~/.claude/skills/&lt;이름&gt;/SKILL.md</code>, 프로젝트 <code>.claude/skills/&lt;이름&gt;/SKILL.md</code>, 플러그인 안(<code>/플러그인:스킬</code>로 호출). 이름이 겹치면 enterprise &gt; personal &gt; project 순입니다.</li>
+    <li>description은 <b>항상 컨텍스트에 올라 있고</b>, 본문은 호출될 때만 로드됩니다. 그래서 description이 자동 호출의 품질을 좌우합니다.</li>
+    <li><code>disable-model-invocation: true</code>이면 사람만 호출할 수 있고, <code>user-invocable: false</code>이면 Claude만 호출합니다. SKILL.md는 500줄 이하 권장.</li>
+    <li>"표준이라 Codex에도 바로 쓴다" → Skills는 여러 AI 도구에서 쓰이는 개방형 <b>Agent Skills 표준</b>을 따릅니다. 다만 Claude Code 전용 필드를 쓰면 claude.ai 업로드·패키징에서 거부될 수 있습니다. Codex에서의 호환 여부는 공식 확인을 못 했습니다.</li>
+  </ul>
+  <div class="pw"><button class="copy" type="button">복사</button><pre><code>---
+name: fix-issue
+description: Fix a GitHub issue by number. Use when the user asks to resolve an issue.
+disable-model-invocation: true
+---
+
+Fix GitHub issue $ARGUMENTS following our coding standards.
+
+1. Read the issue description
+2. Implement the fix and write tests
+3. Create a commit</code></pre></div>
+  <p style="font-size:14px;color:var(--muted)">위는 공식 문서의 예시를 줄여 옮긴 것입니다.</p>
+
+  <h4>Sub-agents</h4>
+  <p>강의: 메인과 모델 설정을 다르게, 역할을 따로 설정. 토큰 비용 효율화와 동시 작업이 장점.</p>
+  <ul class="tight">
+    <li>서브에이전트는 <b>자체 컨텍스트 창</b>, 별도 시스템 프롬프트, 도구 접근, 독립된 권한을 가지고 결과만 돌려줍니다. 그래서 긴 검색 결과나 로그가 메인 대화를 채우지 않습니다.</li>
+    <li>필수 필드는 <code>name</code>과 <code>description</code>. 선택으로 <code>tools</code>, <code>model</code>(sonnet, opus, haiku, fable, 전체 ID, inherit), <code>permissionMode</code>, <code>effort</code> 등. 위치는 프로젝트 <code>.claude/agents/</code>, 사용자 <code>~/.claude/agents/</code>.</li>
+    <li>쓰기 좋은 때: 큰 부수 작업, 도구 제한이 필요할 때, Haiku 같은 저렴한 모델로 돌리고 싶을 때. 반대로 잦은 왕복이 필요하거나 빠른 수정에는 메인 대화가 낫습니다. 기본 제공: Explore, Plan, general-purpose.</li>
+    <li>"요즘은 Agent 자체를 Multi-Agent(A2A)로" → 용어집에 Claude Code의 실험 기능 <b>agent teams</b>(독립 세션 여러 개가 공유 작업 목록으로 협업, 기본 비활성)가 있습니다. "A2A"라는 이름의 프로토콜이 노트의 맥락과 같은지는 확인하지 못했습니다.</li>
+  </ul>
+  <div class="pw"><button class="copy" type="button">복사</button><pre><code>---
+name: code-reviewer
+description: Reviews code for quality and best practices. Use after code changes.
+tools: Read, Glob, Grep
+model: sonnet
+---
+
+You are a code reviewer. When invoked, analyze the code and provide
+specific, actionable feedback on quality, security, and best practices.</code></pre></div>
+
+  <h3 id="plugin">3-5. Plugin과 세션</h3>
+  <p>누군가 만든 스킬 등이 포함된 뭉텅이를 설치해 사용.</p>
+  <ul class="tight">
+    <li>플러그인은 skills, agents, hooks, MCP servers 등을 <b>한 단위로 설치</b>하는 폴더입니다. 터미널에서 <code>/plugin</code>으로 Discover 탭에서 설치하고, 설치 범위는 user, project, local 중에서 고릅니다.</li>
+    <li><b>주의:</b> 플러그인은 사용자 권한으로 코드를 실행할 수 있습니다. 설치 전에 검토가 필요하고, 활성화된 플러그인의 skill·agent 이름과 설명은 매 턴 컨텍스트를 차지합니다(공식 마켓플레이스 플러그인은 Context cost 추정치가 표시됩니다).</li>
+  </ul>
+  <h4>세션 간 대화는 공유되지 않는다 — 단, 예외가 있습니다</h4>
+  <ul class="tight">
+    <li>세션을 여러 개 열면 서로 대화 데이터가 공유되지 않으니, A/B 기능을 각각 해볼 때는 세션을 따로 열거나 /clear를 쓰세요.</li>
+    <li>맞습니다. 세션마다 독립된 컨텍스트 창을 가지고, <code>/clear</code>는 새 세션을 시작합니다(이전 세션은 보관되어 <code>/resume</code>으로 복귀).</li>
+    <li><b>예외</b>: CLAUDE.md와 auto memory는 디스크에 있어서 새 세션에도 로드됩니다. 즉 "대화"는 공유되지 않지만 "지침과 학습 메모"는 이어집니다. 실습 A와 B의 결과가 서로 오염되지 않게 하려면 이 파일들의 내용도 점검하세요.</li>
+  </ul>
+</section>
+
+<!-- 4 -->
+<section id="labs">
+  <div class="part">HANDS-ON</div>
+  <h2>4. 부서에서 그대로 따라 해보는 실습 가이드</h2>
+  <p>강의에서 한 실습 4가지를 재현 순서대로 정리했습니다. 각 실습의 <b>AWS 의존성</b>을 표시했으니 환경에 맞게 선택하세요. 프롬프트 원문은 노트 기준이고, "예시"라고 적은 것은 노트에 원문이 없어 제가 쓴 것입니다.</p>
+
+  <div class="box note">
+    <h4>시작 전 준비</h4>
+    <ul>
+      <li>Claude Code 사용 가능한 계정 또는, AWS를 쓰는 경우 Bedrock에서 Anthropic 모델의 use case 양식 제출(계정당 1회)과 IAM 권한 </li>
+      <li>Bedrock 경유 시 환경변수: <code>CLAUDE_CODE_USE_BEDROCK=1</code>, 필요하면 <code>AWS_REGION</code>. 처음이면 <code>claude</code> 실행 후 "3rd-party platform → Amazon Bedrock" 마법사를 따라가면 됩니다 </li>
+      <li>Bedrock에서는 Claude Code의 <b>WebSearch 도구를 사용할 수 없습니다</b> </li>
+      <li>실습 전 <code>/model</code>, <code>/effort</code>를 확인하고, 실습마다 <code>/clear</code>로 세션을 나누면 결과가 섞이지 않습니다.</li>
+    </ul>
+  </div>
+
+  <div class="lab">
+    <h3>실습 1 · S3로 정적 웹사이트 만들기</h3>
+    <div class="tags"><span class="b off">AWS 의존: S3, CloudFront</span><span class="b nt">난이도 하</span></div>
+    <p><b>목표</b>: 정적 웹사이트가 무엇인지 체감합니다. 정적 사이트는 호출할 때마다 같은 정보를 보여주고, 동적 사이트는 호출할 때마다 다른 데이터를 보여줍니다.</p>
+    <div class="pw"><button class="copy" type="button">복사</button><pre><code>S3사용해서 정적 웹사이트 만들어줘.</code></pre></div>
+    <p><b>확인 포인트</b></p>
+    <ul class="tight">
+      <li>Claude가 만든 파일과 S3 bucket 설정이 무엇인지 설명을 요청해 보세요.</li>
+      <li>HTTPS가 필요하면 CloudFront를 앞에 두는 구성이 필요합니다(2-3절).</li>
+    </ul>
+    <p><b>비AWS 대안</b>: 5장 참고.</p>
+  </div>
+
+  <div class="lab">
+    <h3>실습 2 · 테트리스 만들고 배포하기</h3>
+    <div class="tags"><span class="b off">AWS 의존: S3, CloudFront</span><span class="b nt">난이도 하</span></div>
+    <p><b>목표</b>: 만든 것을 사용자가 접근하는 주소까지 올려 봅니다. 노트에서 "서버는 CF에서 진행한다"는 말은 <b>S3에 저장하고 CloudFront를 그 앞에 둔다</b>는 뜻이었습니다.</p>
+    <div class="pw"><button class="copy" type="button">복사</button><pre><code>(예시) 브라우저에서 동작하는 테트리스를 HTML, CSS, JavaScript로 만들어주세요.
+방향키로 조작하고 점수를 표시해주세요. 정적 파일로만 구성해주세요.</code></pre></div>
+    <p><b>토론 거리</b> : EC2에도 배포할 수 있지만, Agent용으로 쓰려면 세션 관리를 따로 개발해야 합니다. AgentCore Runtime이 이 부분(세션 격리 등)을 제공합니다.</p>
+  </div>
+
+  <div class="lab">
+    <h3>실습 3 · 포털 구축 (React + TypeScript + Vite + Cloudscape)</h3>
+    <div class="tags"><span class="b off">AWS 의존: 없음 (로컬에서 가능)</span><span class="b nt">난이도 중</span></div>
+    <p><b>목표</b>: 의존성 설치(lib 설치)와 개발 서버 실행까지 Claude에게 맡겨 봅니다.</p>
+    <div class="pw"><button class="copy" type="button">복사</button><pre><code>React + TypeScript + Vite + Cloudscape 프로젝트를 만들어주세요.
+의존성 설치 후 개발 서버를 실행해주세요.</code></pre></div>
+    <p><b>알아둘 점</b>: Cloudscape는 AWS가 2016년부터 자사 제품에 써 온 <b>오픈소스 디자인 시스템</b>(Apache 2.0)이며, 개발자용 컴포넌트는 React로 제공됩니다. AWS 계정 없이도 사용할 수 있습니다. 에러가 나면 그대로 Claude에게 전달하면 됩니다.</p>
+  </div>
+
+  <div class="lab">
+    <h3>실습 4 · 마무리 프롬프트로 규칙과 절차 남기기</h3>
+    <div class="tags"><span class="b off">AWS 의존: 없음</span><span class="b nt">난이도 하</span></div>
+    <p><b>목표</b>: 한 번의 실습을 CLAUDE.md(규칙)와 Skill(절차) 후보로 남깁니다. "제안만 하고 만들지는 말라"는 문장이 핵심입니다. 무엇을 남길지 <b>사람이 결정</b>하게 하는 장치입니다.</p>
+    <div class="pw"><button class="copy" type="button">복사</button><pre><code>이번 실습에서 만들고 바꾼 파일과 그 이유를 정리해주세요.
+그리고 이번 실습 범위 안에서, 다음에도 지켜야 할 규칙은 CLAUDE.md에,
+반복할 절차는 Skill로 남길 만한 것이 있는지 제안해주세요.
+제안만 하고 아직 만들지는 마세요.</code></pre></div>
+  </div>
+
+  <h3>진행 안 (제안)</h3>
+  <p>강의 원문에는 없는, 부서 공유용으로 제가 구성한 순서입니다.</p>
+  <ol class="steps">
+    <li><b>개념 15분</b> — 요약본의 Agent 루프 그림과 Context 5요소, 확장 기능 5종 표로 설명합니다.</li>
+    <li><b>실습 1~2, 40분</b> — AWS 계정이 있으면 S3 방식, 없으면 5장의 대안 중 하나로 진행합니다.</li>
+    <li><b>실습 3, 30분</b> — 로컬에서 개발 서버가 뜨는 것까지 확인합니다.</li>
+    <li><b>실습 4와 회고, 15분</b> — 각자 제안받은 CLAUDE.md·Skill 후보를 공유하고, 7장 복습 문제로 마무리합니다.</li>
+  </ol>
+</section>
+
+<!-- 5 -->
+<section id="noaws">
+  <div class="part">ALTERNATIVES</div>
+  <h2>5. AWS가 없는 환경이라면</h2>
+  <p>Day1은 AWS 중심으로 진행됐지만, 의존하는 범위는 생각보다 좁습니다. 아래 표는 어떤 부분을 대체할 수 있는지 정리한 것입니다.</p>
+  <div class="tw"><table>
+    <thead><tr><th>하고 싶은 것</th><th>AWS 방식 (강의)</th><th>대안</th><th>근거</th></tr></thead>
+    <tbody>
+      <tr><td>Claude Code로 개발</td><td>Bedrock 경유</td><td>Anthropic 직접 계정, 또는 Google Cloud, Microsoft Foundry 경유</td><td>문서 목록에 Claude Platform on AWS, Google Cloud, Microsoft Foundry 설정 페이지가 있습니다. 기능 차이는 "Feature availability" 페이지에 비교되어 있으나 이번에 읽지 못했습니다.</td></tr>
+      <tr><td>정적 웹사이트 호스팅</td><td>S3 + CloudFront</td><td>GitHub Pages</td><td>저장소의 HTML·CSS·JS를 그대로 게시하는 정적 호스팅. 공개 저장소는 Free 요금제에서, 비공개 저장소는 Pro, Team, Enterprise에서 가능. 방문자 IP가 로그로 저장됩니다.</td></tr>
+      <tr><td>정적 웹사이트 호스팅</td><td>S3 + CloudFront</td><td>Cloudflare Pages</td><td>정적 HTML 사이트 배포 지원. git 저장소를 연결하면 푸시할 때 재배포하고 <code>*.pages.dev</code> 주소가 생깁니다. 최상위 <code>index.html</code>이 필요합니다. 직접 업로드 방식은 확인하지 못했습니다.</td></tr>
+      <tr><td>포털 UI 개발</td><td>Cloudscape</td><td>그대로 사용 가능</td><td>Apache 2.0 오픈소스</td></tr>
+      <tr><td>Agent 배포·운영</td><td>AgentCore</td><td>—</td><td>다른 클라우드의 동등 서비스는 이번에 조사하지 않았습니다.</td></tr>
+    </tbody>
+  </table></div>
+  <div class="box note">
+    <h4>보안 검토 메모 </h4>
+    <p style="margin:0">외부 SaaS 호스팅에 사내 자료나 개인정보가 섞인 결과물을 올리기 전에는 부서의 보안 지침을 먼저 확인하세요. 교육용 실습은 공개해도 문제없는 샘플 콘텐츠(테트리스 등)로 한정하는 편이 안전합니다.</p>
+  </div>
+</section>
+
+<!-- 6 -->
+<section id="verify">
+  <div class="part">VERIFICATION</div>
+  <h2>6. 강의 노트 검증표</h2>
+  <p>노트의 주장 20건을 공식 문서와 대조한 결과입니다. 강의가 틀렸다는 뜻이 아니라, 필기 과정에서 생길 수 있는 모호함을 걸러내려는 목적입니다.</p>
+  <div class="tw"><table>
+    <thead><tr><th>노트의 내용</th><th>판정</th><th>근거·비고</th></tr></thead>
+    <tbody>
+      <tr><td>도구+컨텍스트 = harness</td><td class="v-ok">일치</td><td>용어집 "Agentic harness" 정의</td></tr>
+      <tr><td>AgentCore harness = 소스코드 없이 설정으로 배포</td><td class="v-ok">일치</td><td>API 한 번으로 모델·프롬프트·도구를 지정하는 관리형 루프</td></tr>
+      <tr><td>AgentCore gateway = 외부 MCP 등 도구 사용</td><td class="v-ok">일치</td><td>API·Lambda를 MCP 도구로 변환, 기존 MCP 서버에 연결</td></tr>
+      <tr><td>AgentCore payments = 외부 도구 과금</td><td class="v-ok">일치</td><td>x402, MPP 기반 소액 결제로 유료 API·MCP 서버 사용</td></tr>
+      <tr><td>bucket 1개 50TB (무제한)</td><td class="v-fix">정정</td><td>50TB는 객체 1개 최대 크기, bucket 총량은 무제한</td></tr>
+      <tr><td>CF 전세계 800여개</td><td class="v-part">대체로 일치</td><td>공식 750+ POP</td></tr>
+      <tr><td>CF 국내 10여개</td><td class="v-no">확인 못함</td><td>한국 개수 미공개</td></tr>
+      <tr><td>단기 메모리 "confection"</td><td class="v-part">오타 추정</td><td>compaction으로 보이며, 용어집 정의와 노트 설명이 맞음</td></tr>
+      <tr><td>/effort는 새로 나온 모델에만</td><td class="v-ok">일치</td><td>목록 모델만 지원</td></tr>
+      <tr><td>opus는 medium</td><td class="v-ok">일치</td><td>Opus 5.5 기본값 medium</td></tr>
+      <tr><td>ex-high는 자가당착이 많다</td><td class="v-part">부분 일치</td><td>공식 경고 대상은 max</td></tr>
+      <tr><td>default = auto mode</td><td class="v-ok">일치 (설명 필요)</td><td>auto는 시작 모드. 설정값 default는 Manual</td></tr>
+      <tr><td>세션 간 대화 데이터 공유 안 됨</td><td class="v-part">일치 (예외 있음)</td><td>CLAUDE.md와 auto memory는 세션을 넘어 로드됨</td></tr>
+      <tr><td>Claude.md는 지침, Hook은 강제</td><td class="v-ok">일치</td><td>공식도 같은 구분</td></tr>
+      <tr><td>Hook은 JSON, Claude.md는 마크다운</td><td class="v-ok">일치</td><td>hooks는 settings JSON</td></tr>
+      <tr><td>Skill 호출 2가지(자연어 자동, 이름)</td><td class="v-ok">일치</td><td>description 기반 자동 로드 / <code>/skill-name</code></td></tr>
+      <tr><td>Sub-agent는 모델·역할을 따로 설정</td><td class="v-ok">일치</td><td>model, system prompt 필드</td></tr>
+      <tr><td>/review = 바꾼 곳만 점검</td><td class="v-ok">일치</td><td>/code-review의 별칭, 현재 diff 점검</td></tr>
+      <tr><td>Skills·MCP는 표준 → Codex에도 사용</td><td class="v-part">부분 확인</td><td>개방형 표준은 확인, Codex 호환은 미확인</td></tr>
+      <tr><td>Multi-Agent (A2A)</td><td class="v-no">확인 못함</td><td>agent teams(실험 기능)만 확인</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- 7 -->
+<section id="review">
+  <div class="part">REVIEW</div>
+  <h2>7. 복습 문제</h2>
+  <p>동료와 함께 풀어 보세요. 질문을 누르면 답이 열립니다.</p>
+  <details><summary>Q1. Agent를 구성하는 요소를 한 문장으로 말해 보세요.</summary>
+    <p>모델 + 컨텍스트 + 도구 + 반복 루프, 그리고 결과를 확인하는 사람의 검수가 필요합니다. 도구와 컨텍스트를 묶어 harness라고도 부릅니다.</p></details>
+  <details><summary>Q2. 같은 질문에 모델의 답이 매번 조금씩 다른 이유는?</summary>
+    <p>다음 토큰의 확률 목록에서 하나를 뽑는 샘플링 단계가 확률적이기 때문입니다. temperature를 낮추면 재현성은 좋아지지만 정확성이 보장되지는 않습니다.</p></details>
+  <details><summary>Q3. 컨텍스트가 가득 차면 어떤 일이 일어나고, 무엇이 살아남나요?</summary>
+    <p>오래된 도구 출력부터 지우고 대화를 요약합니다(compaction). 프로젝트 루트의 CLAUDE.md와 auto memory는 디스크에서 다시 읽혀 살아남지만, 대화에서만 준 지시는 사라질 수 있습니다.</p></details>
+  <details><summary>Q4. "민감한 파일은 절대 수정하지 마"라는 규칙을 반드시 지키게 하려면 CLAUDE.md와 Hooks 중 무엇을 쓰나요? 어떤 이벤트와 종료 코드가 필요한가요?</summary>
+    <p>Hooks입니다. CLAUDE.md는 컨텍스트일 뿐 강제가 아닙니다. 도구 실행 전에 막으려면 PreToolUse 이벤트에서 exit 2로 종료합니다. exit 1은 차단하지 않습니다.</p></details>
+  <details><summary>Q5. S3의 50TB와 "무제한"을 정확하게 설명해 보세요.</summary>
+    <p>객체 하나의 최대 크기가 50TB이고, bucket에 저장하는 총 용량과 객체 수에는 제한이 없습니다. 단일 PUT은 5GB까지이고 100MB를 넘으면 multipart 업로드를 권장합니다.</p></details>
+  <details><summary>Q6. 서브에이전트를 쓰면 좋은 경우와 메인 대화가 나은 경우를 하나씩 말해 보세요.</summary>
+    <p>좋은 경우: 긴 검색 결과가 메인 대화를 채우는 부수 작업이거나, 저렴한 모델로 돌리고 싶을 때. 메인이 나은 경우: 잦은 왕복과 수정이 필요한 작업이나 빠른 소규모 수정.</p></details>
+  <details><summary>Q7. 세션 A에서 한 대화를 세션 B에서 볼 수 있나요? 공유되는 것은 무엇인가요?</summary>
+    <p>대화는 볼 수 없습니다. 다만 CLAUDE.md와 auto memory는 디스크에 있어서 새 세션에도 로드됩니다.</p></details>
+  <details><summary>Q8. 정적 웹사이트에 HTTPS를 적용하려면 S3만으로 되나요?</summary>
+    <p>S3 웹사이트 엔드포인트는 HTTP만 제공하므로, CloudFront를 앞에 두고 Viewer Protocol Policy를 HTTPS로 설정합니다. 커스텀 도메인의 ACM 인증서는 us-east-1에서 발급해야 합니다.</p></details>
+  <details><summary>Q9. 실습이 끝나고 어떤 프롬프트를 던지나요? 왜 "만들지는 마세요"를 붙이나요?</summary>
+    <p>만들고 바꾼 파일과 이유를 정리시키고, CLAUDE.md와 Skill로 남길 후보를 제안받는 프롬프트입니다. 무엇을 영구 규칙으로 남길지는 사람이 결정하도록, 제안 단계에서 멈추게 합니다.</p></details>
+</section>
+
+<!-- 8 -->
+<section id="unknown">
+  <div class="part">LIMITS</div>
+  <h2>8. 확인하지 못한 항목</h2>
+  <p>정확한 정보를 찾지 못한 항목은 아래에 모았습니다. 위 본문에서는 단정하지 않았습니다.</p>
+  <ul class="tight">
+    <li>CloudFront의 한국 내 거점 개수 ("국내 10여개")</li>
+    <li>Codex에서 Claude Code 스킬을 그대로 쓸 수 있는지 (개방형 표준이라는 점만 확인)</li>
+    <li>"A2A"가 가리키는 프로토콜과 노트 맥락의 일치 여부</li>
+    <li>AgentCore 구성요소의 GA/프리뷰 상태</li>
+    <li>Polly, Rekognition, Textract 등 AWS AI 서비스의 설명, 그리고 노트가 비워 둔 Bedrock/Polly 항목</li>
+    <li>Claude 최신 모델의 temperature 파라미터 동작과 기본값 (Anthropic 플랫폼 용어집 접근이 승인되지 않아 읽지 못함)</li>
+    <li>MCP 최신 spec 개정의 공식 원문 (위키백과 요약만 확인)</li>
+    <li>Claude Code surface(CLI, IDE, Desktop 등)별 기능 차이의 항목별 비교</li>
+    <li>AWS 외 클라우드의 Agent 운영 서비스 비교</li>
+    <li>노트에 삽입된 이미지에 담긴 정보 전부</li>
+  </ul>
+</section>
+
+<!-- 9 -->
+<section id="sources">
+  <div class="part">SOURCES</div>
+  <h2>9. 출처 (확인일 2026-10-16)</h2>
+  <h4>공식 문서</h4>
+  <ul class="src-list">
+    <li>Claude Code · Hooks reference — <a href="https://code.claude.com/docs/en/hooks">https://code.claude.com/docs/en/hooks</a></li>
+    <li>Claude Code · Choose a permission mode — <a href="https://code.claude.com/docs/en/permission-modes">https://code.claude.com/docs/en/permission-modes</a></li>
+    <li>Claude Code · Extend Claude with skills — <a href="https://code.claude.com/docs/en/skills">https://code.claude.com/docs/en/skills</a></li>
+    <li>Claude Code · Create custom subagents — <a href="https://code.claude.com/docs/en/sub-agents">https://code.claude.com/docs/en/sub-agents</a></li>
+    <li>Claude Code · How Claude remembers your project — <a href="https://code.claude.com/docs/en/memory">https://code.claude.com/docs/en/memory</a></li>
+    <li>Claude Code · Model configuration (/model, /effort) — <a href="https://code.claude.com/docs/en/model-config">https://code.claude.com/docs/en/model-config</a></li>
+    <li>Claude Code · Commands — <a href="https://code.claude.com/docs/en/commands">https://code.claude.com/docs/en/commands</a></li>
+    <li>Claude Code · Plugins overview — <a href="https://code.claude.com/docs/en/plugins/overview">https://code.claude.com/docs/en/plugins/overview</a></li>
+    <li>Claude Code · Explore the context window — <a href="https://code.claude.com/docs/en/context-window">https://code.claude.com/docs/en/context-window</a></li>
+    <li>Claude Code · Glossary — <a href="https://code.claude.com/docs/en/glossary">https://code.claude.com/docs/en/glossary</a></li>
+    <li>Claude Code · Claude Code on Amazon Bedrock — <a href="https://code.claude.com/docs/en/amazon-bedrock">https://code.claude.com/docs/en/amazon-bedrock</a></li>
+    <li>Amazon S3 FAQs — <a href="https://aws.amazon.com/s3/faqs/">https://aws.amazon.com/s3/faqs/</a></li>
+    <li>Amazon CloudFront details — <a href="https://aws.amazon.com/cloudfront/details">https://aws.amazon.com/cloudfront/details</a></li>
+    <li>AWS re:Post · CloudFront HTTPS requests to S3 — <a href="https://repost.aws/knowledge-center/cloudfront-https-requests-s3">https://repost.aws/knowledge-center/cloudfront-https-requests-s3</a></li>
+    <li>Amazon Bedrock AgentCore · What is (일본어 페이지 URL로 열었으나 본문은 영문) — <a href="https://docs.aws.amazon.com/ja_jp/bedrock-agentcore/latest/devguide/what-is-bedrock-agentcore.html">https://docs.aws.amazon.com/ja_jp/bedrock-agentcore/latest/devguide/what-is-bedrock-agentcore.html</a></li>
+    <li>Cloudscape Design System · About — <a href="https://cloudscape.design/about/">https://cloudscape.design/about/</a></li>
+    <li>GitHub Docs · What is GitHub Pages — <a href="https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages">https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages</a></li>
+    <li>Cloudflare Pages · Deploy anything (static HTML) — <a href="https://developers.cloudflare.com/pages/framework-guides/deploy-anything">https://developers.cloudflare.com/pages/framework-guides/deploy-anything</a></li>
+  </ul>
+  <h4>2차 자료 (참고 수준, 원문 확인 권장)</h4>
+  <ul class="src-list">
+    <li>KodeKloud Notes · Temperature and Sampling: Why the Same Prompt Gives Different Answers — <a href="https://notes.kodekloud.com/docs/AI-Foundations-for-Technical-Professionals/Inside-the-Model/Temperature-and-Sampling-Why-the-Same-Prompt-Gives-Different-Answers/page.md">링크</a></li>
+    <li>Wikipedia · Model Context Protocol — <a href="https://en.wikipedia.org/wiki/Model_Context_Protocol">https://en.wikipedia.org/wiki/Model_Context_Protocol</a></li>
+  </ul>
+  <h4>원본</h4>
+  <ul class="src-list"><li>리포랩 3기 Day 1 강의 노트 (2026-10-15), Pre-workshop 노트 (2026-10-14)</li></ul>
+</section>
+
+<footer>
+  <p>이 워크북은 강의 노트를 재구성한 학습 정리본이며 강의 자료 원문이 아닙니다. 요약만 필요하면 <a href="../../index.html#day1/summary" target="_top">Day 1 요약본</a>을 참고하세요.</p>
+</footer>
+</main>
+</div>
+
+<script>
+document.querySelectorAll('.pw').forEach(function(w){
+  var b=w.querySelector('.copy'); if(!b) return;
+  b.addEventListener('click',function(){
+    var t=w.querySelector('code').innerText;
+    var done=function(){b.textContent='복사됨'; setTimeout(function(){b.textContent='복사'},1400)};
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done,function(){})}
+    else{var a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy');done()}catch(e){}document.body.removeChild(a)}
+  });
+});
+</script>
+</body>
+</html>

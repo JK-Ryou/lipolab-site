@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>리포랩 3기 Day 2 요약</title>
+<meta name="description" content="MCP 연결·구축부터 DB & SQL, API까지 — 하루 교육 흐름 요약본">
+<style>
+:root{
+  --bg:#faf8f4; --surface:#ffffff; --ink:#1d2a2e; --muted:#5d6b70; --line:#e4dfd5;
+  --accent:#0f6e6e; --accent-soft:#e1f0ee; --warm:#c8552e; --warm-soft:#fbe9e2; --gold:#a8791a; --gold-soft:#f7efd9;
+  --code-bg:#f1eee7;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#14191b; --surface:#1b2225; --ink:#e8ecea; --muted:#9aa8ab; --line:#2c373b;
+    --accent:#5cc2bd; --accent-soft:#16302f; --warm:#f08a63; --warm-soft:#3a231b; --gold:#e2b550; --gold-soft:#332a14;
+    --code-bg:#222b2e;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14191b; --surface:#1b2225; --ink:#e8ecea; --muted:#9aa8ab; --line:#2c373b;
+  --accent:#5cc2bd; --accent-soft:#16302f; --warm:#f08a63; --warm-soft:#3a231b; --gold:#e2b550; --gold-soft:#332a14;
+  --code-bg:#222b2e;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Pretendard Variable",Pretendard,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
+  line-height:1.7;font-size:16px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:860px;margin:0 auto;padding:0 20px 80px}
+header.hero{padding:56px 0 28px;border-bottom:1px solid var(--line);margin-bottom:8px}
+.eyebrow{font-size:13px;letter-spacing:.08em;color:var(--accent);font-weight:700}
+h1{font-size:clamp(28px,5vw,40px);line-height:1.25;margin:10px 0 12px;letter-spacing:-.02em}
+.lead{color:var(--muted);font-size:17px;margin:0}
+.meta{margin-top:16px;display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-block;padding:3px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:13px;font-weight:600}
+.chip.warm{background:var(--warm-soft);color:var(--warm)}
+.chip.gold{background:var(--gold-soft);color:var(--gold)}
+h2{font-size:24px;margin:0 0 6px;letter-spacing:-.01em}
+h3{font-size:18px;margin:26px 0 8px}
+p{margin:8px 0}
+section{padding:40px 0 8px}
+.flow{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:28px 0 8px}
+.flow a{display:block;text-decoration:none;color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;position:relative}
+.flow a:hover{border-color:var(--accent)}
+.flow .n{font-size:12px;font-weight:700;color:var(--accent);letter-spacing:.06em}
+.flow .q{font-size:20px;font-weight:700;margin:2px 0}
+.flow .d{font-size:14px;color:var(--muted);line-height:1.5}
+.flow a:not(:last-child)::after{content:"→";position:absolute;right:-13px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:18px;background:var(--bg);padding:0 1px;z-index:1}
+@media(max-width:700px){.flow{grid-template-columns:1fr}.flow a:not(:last-child)::after{content:"↓";right:auto;left:50%;top:auto;bottom:-17px;transform:translateX(-50%)}}
+.one{background:var(--accent-soft);border-left:4px solid var(--accent);border-radius:0 12px 12px 0;padding:14px 18px;margin:14px 0;font-size:17px;font-weight:600}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 20px;margin:14px 0}
+.card h4{margin:0 0 6px;font-size:16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:700px){.grid2{grid-template-columns:1fr}}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:15px;background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--code-bg);font-size:13px;color:var(--muted);letter-spacing:.03em}
+tr:last-child td{border-bottom:0}
+td:first-child{font-weight:600;white-space:nowrap}
+code{background:var(--code-bg);padding:1px 6px;border-radius:5px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.9em}
+pre{background:var(--code-bg);padding:14px 16px;border-radius:10px;overflow:auto;font-size:14px;line-height:1.6;margin:10px 0}
+pre code{background:none;padding:0}
+.steps{counter-reset:s;list-style:none;padding:0;margin:12px 0}
+.steps li{counter-increment:s;position:relative;padding:10px 14px 10px 52px;margin:8px 0;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.steps li::before{content:counter(s);position:absolute;left:14px;top:10px;width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:700;font-size:14px}
+.fix{background:var(--warm-soft);border:1px solid var(--warm);border-radius:12px;padding:12px 18px;margin:16px 0}
+.fix h4{margin:0 0 4px;color:var(--warm);font-size:15px}
+.fix ul{margin:4px 0 0;padding-left:20px}
+svg text{font-family:inherit}
+.diagram{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;margin:14px 0}
+.diagram svg{width:100%;height:auto;display:block}
+footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:14px}
+footer a{color:var(--accent);font-weight:600}
+.k{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+details{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 16px;margin:8px 0}
+details summary{cursor:pointer;font-weight:600;line-height:1.5}
+details summary:hover{color:var(--accent)}
+details[open]{border-color:var(--accent)}
+details[open] summary{margin-bottom:6px}
+details p{margin:6px 0 2px;color:var(--ink)}
+.qa-h{font-size:16px;color:var(--accent);margin:22px 0 6px}
+.qa-tools{display:flex;gap:8px;margin:10px 0 0}
+.qa-tools button{font:inherit;font-size:13px;padding:4px 12px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.qa-tools button:hover{color:var(--accent);border-color:var(--accent)}
+@media print{details{break-inside:avoid}details>*{display:block}}
+@media print{body{background:#fff;color:#000}.flow a::after{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="eyebrow">리포랩 3기 · DAY 2 요약본</div>
+  <h1>MCP로 도구를 이어 붙이고,<br>DB와 API를 자연어로 다루는 하루</h1>
+  <p class="lead">"모델이 어떤 도구를 쓸지 고른다 — 나는 그 도구를 잘 마련해 두기만 하면 된다." MCP 구조와 자연어 질의 흐름이 오늘의 핵심이었습니다.</p>
+  <div class="meta">
+    <span class="chip">2026-10-16</span>
+    <span class="chip">센터필드 EAST 18층</span>
+    <span class="chip warm">읽는 시간 약 10분</span>
+    <a class="chip gold" href="#p1" style="text-decoration:none">강의 내용으로 바로가기</a>
+  </div>
+</header>
+
+<section id="qna">
+  <div class="eyebrow">Q&amp;A</div>
+  <h2>강의 듣기 전, 이런 게 궁금하셨죠?</h2>
+  <p>강의를 듣기 전에 흔히 하게 되는 질문 10개입니다. 답은 모두 이번 강의에서 다룬 내용입니다.</p>
+  <div class="qa-tools">
+    <button type="button" id="qa-open">모두 펼치기</button>
+    <button type="button" id="qa-close">모두 접기</button>
+  </div>
+
+  <details><summary>Q1. MCP가 뭔가요? API나 SDK랑 어떻게 다른가요?</summary>
+    <p>MCP는 Agent가 외부 도구·서비스와 연결되는 <b>표준 규격(프로토콜)</b>입니다. API가 "창구 하나"라면, MCP는 "어떤 창구든 같은 방식으로 끼울 수 있는 규격"입니다. USB-C 포트에 비유할 수 있습니다. SDK는 특정 언어에서 API를 쉽게 쓰게 해주는 라이브러리이고, MCP는 AI Agent와 도구가 대화하는 프로토콜 수준의 표준입니다.</p></details>
+
+  <details><summary>Q2. 로컬 MCP와 원격 MCP는 언제 각각 쓰나요?</summary>
+    <p>내 데이터를 활용하거나 혼자 쓴다면 <b>로컬(stdio)</b>이 적합합니다. 개인 PC 자원을 쓰기 때문에 많이 돌리면 느려질 수 있고, 도구가 50개를 넘으면 MCP 서버를 정리하는 것이 좋습니다. 팀과 함께 쓰거나 서비스로 제공하려면 <b>원격(streamable HTTP)</b>을 씁니다. AWS AgentCore Gateway가 원격 MCP 서버를 관리형으로 제공합니다.</p></details>
+
+  <details><summary>Q3. RDB, Graph DB, Vector DB 중 우리 업무엔 뭘 써야 하나요?</summary>
+    <p>일반적인 업무 데이터(고객, 상품, 거래 등)는 <b>RDB</b>를 씁니다. 개념들 사이의 관계망을 다루는 온톨로지 구축에는 <b>Graph DB</b>, FAQ나 문서를 유사도로 검색해야 하는 RAG에는 <b>Vector DB</b>가 필요합니다. 오늘 실습의 고객·상품 데이터는 RDB(Aurora MySQL)였습니다.</p></details>
+
+  <details><summary>Q4. 스키마를 처음부터 잘 설계해야 한다는 게 왜 중요한가요?</summary>
+    <p>스키마를 나중에 추가하면 <b>이전 데이터에 null이 생깁니다.</b> 데이터 일관성이 깨지고 이후 조회·분석이 복잡해집니다. PK(Primary Key)처럼 식별자 역할을 하는 필드를 바꾸는 것은 더 어렵습니다. 처음 설계를 신중하게 해야 하는 이유입니다.</p></details>
+
+  <details><summary>Q5. SQL CRUD와 HTTP CRUD는 같은 건가요?</summary>
+    <p>개념은 같고 표현이 다릅니다. 만들고(Create), 읽고(Read), 고치고(Update), 지운다(Delete)는 의미는 동일합니다. SQL은 <code>INSERT / SELECT / UPDATE / DELETE</code>로, HTTP는 <code>POST / GET / PUT / DELETE</code>로 표현합니다. API가 DB 위에서 SQL을 래핑해 제공하는 구조라서 두 레이어가 나란히 존재합니다.</p></details>
+
+  <details><summary>Q6. "자연어로 DB를 조회한다"는 게 실제로 어떻게 동작하나요?</summary>
+    <p>① 사용자가 자연어로 질문합니다. ② Agent(모델)가 <b>사용할 도구(API)를 고릅니다.</b> ③ 도구가 HTTPS 요청을 만들어 서버에 보냅니다. ④ 서버가 SQL을 실행합니다. ⑤ 결과가 도구 → Agent → 사용자 순으로 전달됩니다. 오늘 실습에서 이 전 과정을 한 번에 확인했습니다.</p></details>
+
+  <details><summary>Q7. "5명만 찾아줘"라고 했는데 왜 SQL에 LIMIT이 없었나요?</summary>
+    <p>강의 중 실제로 나온 질문입니다. 모델이 "5명만"이라는 조건을 SQL의 <code>LIMIT</code>이 아니라 <b>응답 출력 단에서 처리</b>했을 가능성이 있습니다. Agent 응용에서 자연어 조건이 어느 레이어에서 적용되는지 확인하는 것이 중요합니다. 조건을 SQL 레이어에 반영하려면 프롬프트를 더 구체적으로 주거나, MCP 도구 명세에 명시하는 방법이 있습니다.</p></details>
+
+  <details><summary>Q8. GET과 POST는 뭐가 다른가요?</summary>
+    <p>GET은 <b>데이터 조회</b>에, POST는 <b>데이터 생성 또는 복잡한 요청</b>에 씁니다. GET은 URL에 파라미터가 드러나고, POST는 요청 본문(body)에 데이터를 담습니다. 오늘 실습에서 MCP 연결에 POST를 쓴 이유는 MCP 프로토콜이 도구 이름과 입력값을 JSON 본문에 담아 전달하는 방식으로 설계되어 있기 때문입니다.</p></details>
+
+  <details><summary>Q9. AI가 잘못 답하는 경우(할루시네이션)를 어떻게 줄이나요?</summary>
+    <p>세 가지 접근이 있습니다. ① <b>데이터의 질 관리</b>: AI는 근거 데이터가 부정확하면 잘못 답합니다. 최신성·정확성과 분포 변화를 지속적으로 모니터링해야 합니다. ② <b>프롬프트</b>: "모르면 모른다고 해"처럼 명확한 가이드를 줍니다. ③ <b>결과 검증</b>: GenAI는 확률 기반이므로 항상 검증합니다. 특히 데이터 정책이 바뀌면 결과가 크게 달라질 수 있습니다.</p></details>
+
+  <details><summary>Q10. MCP 서버를 직접 만들어 Claude Code에 연결하면 무엇을 할 수 있나요?</summary>
+    <p>내 업무 데이터나 사내 시스템을 Claude Code에서 <b>자연어로 다룰 수</b> 있게 됩니다. "FastMCP 써서 엑셀 파일을 MCP 서버로 만들어줘"처럼 요청하면, 엑셀 데이터를 Claude Code에서 직접 질의할 수 있습니다. 혼자 쓴다면 stdio(로컬), 팀에 배포하려면 streamable HTTP(원격) 방식으로 구성합니다.</p></details>
+</section>
+
+<section>
+  <h2>오늘 꼭 가져갈 3가지</h2>
+  <ol class="steps">
+    <li><b>MCP = 도구를 연결하는 규격.</b> 직접 만들거나 기존 것을 가져다 씁니다. 혼자 쓰면 로컬, 팀과 함께라면 원격입니다.</li>
+    <li><b>자연어 조회는 레이어가 여럿.</b> 자연어 → Agent → API → SQL 순서로 처리되며, 조건이 어느 레이어에 적용되는지 확인해야 합니다.</li>
+    <li><b>결과는 항상 검증.</b> 데이터의 질과 최신성을 관리하고, 프롬프트에 "모르면 모른다고 해"를 명시합니다.</li>
+  </ol>
+
+  <div class="fix">
+    <h4>강의 중 확인된 검증 포인트 (자세한 근거는 워크북)</h4>
+    <ul>
+      <li>"5명만 찾아줘" 질문에서 SQL에 LIMIT이 없었습니다. Agent가 조건을 어느 레이어에서 처리하는지 확인이 필요합니다.</li>
+      <li>MCP 연결에 POST를 쓴 이유는 HTTP 메서드의 일반 규칙이 아니라 MCP 프로토콜 설계 때문입니다.</li>
+    </ul>
+  </div>
+</section>
+
+<nav class="flow" aria-label="하루의 흐름">
+  <a href="#p1"><div class="n">PART 1 · 연결</div><div class="q">MCP</div><div class="d">Agent가 외부 도구와 연결되는 방식</div></a>
+  <a href="#p2"><div class="n">PART 2 · 저장</div><div class="q">DB & SQL</div><div class="d">데이터를 담고 꺼내는 구조</div></a>
+  <a href="#p3"><div class="n">PART 3 · 통신</div><div class="q">API</div><div class="d">시스템끼리 대화하는 창구</div></a>
+</nav>
+
+<!-- PART 1 -->
+<section id="p1">
+  <div class="eyebrow">PART 1</div>
+  <h2>MCP — Agent가 외부 도구를 쓰는 방법</h2>
+  <div class="one">MCP = 도구 명세 + 실행 코드 + 인증 정보 + 전송 방식. 직접 만들거나, 기존 것을 가져다 쓰거나.</div>
+
+  <h3>일반 앱과 Agent 앱의 차이</h3>
+  <div class="grid2">
+    <div class="card">
+      <h4>일반 Application</h4>
+      <p style="margin:0">모델을 사용하지 않습니다. 개발자가 정해 놓은 로직대로만 동작합니다.</p>
+    </div>
+    <div class="card">
+      <h4>Agent Application</h4>
+      <p style="margin:0">모델이 판단하고 도구를 고릅니다. 도구는 직접 만들거나, <b>MCP로 외부 도구를 연결</b>합니다.</p>
+    </div>
+  </div>
+
+  <h3>MCP 구성요소 4가지</h3>
+  <table>
+    <thead><tr><th>요소</th><th>역할</th></tr></thead>
+    <tbody>
+      <tr><td>도구 명세</td><td>MCP가 어떤 일을 하는지 설명 — 모델이 읽는 "사용 설명서"</td></tr>
+      <tr><td>실행 코드</td><td>MCP 서버 그 자체. 실제로 일하는 부분</td></tr>
+      <tr><td>인증 정보</td><td>DB·API 등 인가된 사용자만 접근 가능하게 (내부용이라면 필수)</td></tr>
+      <tr><td>전송 방식</td><td>로컬(stdio) 또는 원격(streamable HTTP) 중 선택</td></tr>
+    </tbody>
+  </table>
+
+  <h3>로컬 vs 원격 — 전송 방식 선택</h3>
+  <div class="grid2">
+    <div class="card">
+      <h4>로컬 (stdio)</h4>
+      <ul style="margin:6px 0 0;padding-left:18px">
+        <li>개인 PC 자원을 사용</li>
+        <li>많이 돌리면 PC가 느려질 수 있음</li>
+        <li>나만 쓸 때, 내 데이터를 활용할 때 적합</li>
+        <li>ex. Kiro — 도구 50개 초과 시 "MCP 서버 off" 권장</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>원격 (streamable HTTP)</h4>
+      <ul style="margin:6px 0 0;padding-left:18px">
+        <li>서버에서 실행, 팀과 함께 쓸 때 적합</li>
+        <li>ex. AgentCore Gateway — 원격 MCP 서버를 관리형으로 제공</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>MCP 서버 만들기 2단계</h3>
+  <ol class="steps">
+    <li><b>서버 파일 만들기</b> — "FastMCP 써서 엑셀 파일을 MCP 서버로 만들어줘." Claude Code에 요청하면 됩니다.</li>
+    <li><b>Claude Code에 등록</b> — "내가 만든 MCP 서버를 연결해줘." 등록 후 한 번 껐다 켜야 반영됩니다.</li>
+  </ol>
+</section>
+
+<!-- PART 2 -->
+<section id="p2">
+  <div class="eyebrow">PART 2</div>
+  <h2>DB & SQL — 데이터를 담고 꺼내는 구조</h2>
+  <div class="one">RDB는 일반 업무용, Graph DB는 관계망, Vector DB는 RAG — 목적에 맞게 고릅니다</div>
+
+  <h3>DB의 종류</h3>
+  <table>
+    <thead><tr><th>종류</th><th>특징</th><th>언제 쓰나</th></tr></thead>
+    <tbody>
+      <tr><td>엑셀</td><td>파일 1개, 내 PC에만, 동시 편집 불가</td><td>간단한 개인 작업</td></tr>
+      <tr><td>RDB (관계형)</td><td>테이블, 스키마, SQL로 관리</td><td>일반적인 업무 데이터</td></tr>
+      <tr><td>Graph DB</td><td>노드와 관계(엣지)로 연결</td><td>Ontology 구축 시</td></tr>
+      <tr><td>Vector DB</td><td>임베딩 벡터로 유사도 검색</td><td>RAG 구축 시</td></tr>
+      <tr><td>데이터레이크</td><td>정형·반정형(.json)·비정형 모두 수용</td><td>대규모 데이터 통합</td></tr>
+    </tbody>
+  </table>
+
+  <h3>RDB 핵심 개념</h3>
+  <div class="grid2">
+    <div class="card">
+      <h4>스키마(Schema)</h4>
+      <p style="margin:0">데이터의 구조와 규칙을 정의한 메타데이터. PK(Primary Key)로 각 행을 식별합니다. <b>중간에 추가하면 이전 데이터에 null이 생기므로</b> 처음 설계가 중요합니다.</p>
+    </div>
+    <div class="card">
+      <h4>DB 연결 정보 4가지</h4>
+      <ul style="margin:6px 0 0;padding-left:18px">
+        <li><b>엔드포인트</b>: 어떤 DB에 접속할지 (서버 주소)</li>
+        <li><b>포트</b>: 접속 통로 번호</li>
+        <li><b>사용자 정보</b>: 인가된 사용자 확인</li>
+        <li><b>DB/table 이름</b>: 필요한 데이터 위치</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>SQL — CRUD</h3>
+  <table>
+    <thead><tr><th>동작</th><th>SQL 명령</th><th>역할</th></tr></thead>
+    <tbody>
+      <tr><td>Create</td><td><code>INSERT</code></td><td>데이터 생성</td></tr>
+      <tr><td>Read</td><td><code>SELECT</code></td><td>데이터 조회</td></tr>
+      <tr><td>Update</td><td><code>UPDATE</code></td><td>데이터 수정</td></tr>
+      <tr><td>Delete</td><td><code>DELETE</code></td><td>데이터 삭제</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- PART 3 -->
+<section id="p3">
+  <div class="eyebrow">PART 3</div>
+  <h2>API — 시스템끼리 대화하는 창구</h2>
+  <div class="one">API = 정해진 방식으로만 요청하고 결과를 받는 창구. 내부 동작 방식을 몰라도 됩니다.</div>
+
+  <h3>API가 필요한 이유</h3>
+  <div class="grid2">
+    <div class="card">
+      <h4>추상화</h4>
+      <p style="margin:0">내부 동작 방식 없이 API 호출 방법만 알면 원하는 데이터를 검색·조회할 수 있습니다.</p>
+    </div>
+    <div class="card">
+      <h4>보안과 통제</h4>
+      <p style="margin:0">정해진 방식으로만 요청과 결과를 주고받아, 데이터 접근 방식을 통제합니다.</p>
+    </div>
+  </div>
+
+  <h3>SQL CRUD와 HTTP CRUD 비교</h3>
+  <table>
+    <thead><tr><th>동작</th><th>SQL 명령</th><th>HTTP 메서드</th></tr></thead>
+    <tbody>
+      <tr><td>Create</td><td><code>INSERT</code></td><td><code>POST</code></td></tr>
+      <tr><td>Read</td><td><code>SELECT</code></td><td><code>GET</code></td></tr>
+      <tr><td>Update</td><td><code>UPDATE</code></td><td><code>PUT</code></td></tr>
+      <tr><td>Delete</td><td><code>DELETE</code></td><td><code>DELETE</code></td></tr>
+    </tbody>
+  </table>
+  <p style="font-size:14px;color:var(--muted)">개념은 같고 표현이 다릅니다. API가 DB 위에서 SQL을 래핑해 제공하는 구조라서 두 레이어가 나란히 존재합니다.</p>
+
+  <h3>데이터 조회 흐름의 변화</h3>
+  <div class="diagram">
+    <svg viewBox="0 0 760 190" role="img" aria-label="자연어 질의 흐름: 사용자 자연어 → Agent 도구 선택 → API 호출 → SQL 실행 → 결과 반환">
+      <defs><marker id="ar" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="var(--muted)"/></marker></defs>
+      <g font-size="14" text-anchor="middle" fill="var(--ink)">
+        <rect x="10" y="55" width="110" height="56" rx="12" fill="var(--surface)" stroke="var(--line)"/><text x="65" y="84">자연어 질문</text>
+        <rect x="160" y="55" width="130" height="56" rx="12" fill="var(--accent-soft)" stroke="var(--accent)"/><text x="225" y="84">Agent 도구 선택</text>
+        <rect x="330" y="55" width="130" height="56" rx="12" fill="var(--accent-soft)" stroke="var(--accent)"/><text x="395" y="84">API 호출 (HTTPS)</text>
+        <rect x="500" y="55" width="110" height="56" rx="12" fill="var(--surface)" stroke="var(--line)"/><text x="555" y="84">SQL 실행</text>
+        <rect x="650" y="55" width="100" height="56" rx="12" fill="var(--warm-soft)" stroke="var(--warm)"/><text x="700" y="84">결과 반환</text>
+      </g>
+      <g stroke="var(--muted)" stroke-width="2" fill="none" marker-end="url(#ar)">
+        <path d="M120 83 H156"/><path d="M290 83 H326"/><path d="M460 83 H496"/><path d="M610 83 H646"/>
+      </g>
+      <text x="380" y="150" font-size="13" text-anchor="middle" fill="var(--muted)">이전: SQL 직접 조회 → API를 통해 조회 → Agent를 통해 자연어 조회</text>
+    </svg>
+  </div>
+
+  <h3>오늘 실습 구성</h3>
+  <div class="card">
+    <h4>Aurora MySQL + API Gateway + AgentCore Gateway</h4>
+    <p style="font-size:14px;color:var(--muted);margin:0 0 8px">Aurora MySQL = SQL 콘솔 / API Gateway = API 콘솔 / AgentCore Gateway = MCP 콘솔</p>
+    <p style="margin:0">자연어 질문 → Agent가 MCP를 통해 API 호출 결정 → API가 SQL 실행 → 결과 반환 → 모델이 자연어로 답</p>
+  </div>
+
+  <h3>검증과 안정성 평가</h3>
+  <div class="grid2">
+    <div class="card">
+      <h4>할루시네이션 대응</h4>
+      <ul style="margin:6px 0 0;padding-left:18px">
+        <li>근거 데이터가 없으면 만들어낼 수 있음</li>
+        <li>프롬프트에 "모르면 모른다고 해" 명시</li>
+        <li>산출물이 제대로 나왔는지 항상 확인</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>데이터 질 관리</h4>
+      <ul style="margin:6px 0 0;padding-left:18px">
+        <li>최신성·정확성 지속 모니터링</li>
+        <li>데이터 분포·정책 변화 시 결과가 크게 바뀔 수 있음</li>
+        <li>GenAI는 확률 기반이므로 결과를 항상 검증</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>이 요약본은 강의 노트(2026-10-16)를 바탕으로 정리했습니다. 노트에 삽입된 이미지 자료는 반영하지 못했습니다.</p>
+  <p>더 자세한 설명, 공식 문서 검증, 실습 가이드, 복습 문제는 <a href="../../index.html#day2/workbook" target="_top">Day 2 워크북</a>에서 볼 수 있습니다.</p>
+</footer>
+</div>
+<script>
+(function(){
+  var all=function(o){document.querySelectorAll('#qna details').forEach(function(d){d.open=o})};
+  var a=document.getElementById('qa-open'),b=document.getElementById('qa-close');
+  if(a)a.addEventListener('click',function(){all(true)});
+  if(b)b.addEventListener('click',function(){all(false)});
+})();
+</script>
+</body>
+</html>

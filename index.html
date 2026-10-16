@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>리포랩 3기</title>
+<meta name="description" content="리포랩 3기 교육 내용을 날짜별 요약본과 워크북으로 정리한 학습 사이트">
+<style>
+:root{
+  --bg:#faf8f4; --surface:#ffffff; --ink:#1d2a2e; --muted:#5d6b70; --line:#e4dfd5;
+  --accent:#0f6e6e; --accent-soft:#e1f0ee; --side:#f3efe7;
+  --sw:272px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#14191b; --surface:#1b2225; --ink:#e8ecea; --muted:#9aa8ab; --line:#2c373b;
+    --accent:#5cc2bd; --accent-soft:#16302f; --side:#192023;
+  }
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Pretendard Variable",Pretendard,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;font-size:15px;line-height:1.5}
+.app{display:grid;grid-template-columns:var(--sw) minmax(0,1fr);height:100vh;height:100dvh}
+
+/* sidebar */
+.side{background:var(--side);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.brand{padding:26px 22px 18px;border-bottom:1px solid var(--line)}
+.brand .eyebrow{font-size:11px;letter-spacing:.1em;color:var(--accent);font-weight:700}
+.brand h1{margin:4px 0 2px;font-size:21px;letter-spacing:-.01em}
+.brand p{margin:0;color:var(--muted);font-size:13px}
+nav{flex:1;overflow:auto;padding:14px 12px 24px}
+.day{margin:2px 0}
+.day-btn{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;
+  font:inherit;font-weight:700;font-size:15px;color:var(--ink);background:none;border:0;border-radius:10px;padding:10px 12px;cursor:pointer;letter-spacing:.01em}
+.day-btn:hover{background:var(--accent-soft)}
+.day-btn .date{font-weight:500;color:var(--muted);font-size:13.5px;margin-left:6px}
+.day-btn .caret{width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(-45deg);transition:transform .15s;flex:none}
+.day.open .caret{transform:rotate(45deg)}
+.day-sub{display:none;margin:2px 0 6px 12px;padding-left:10px;border-left:2px solid var(--line)}
+.day.open .day-sub{display:block}
+.day-title{font-size:12.5px;color:var(--muted);padding:2px 10px 6px;line-height:1.4}
+.link{display:block;text-decoration:none;color:var(--muted);padding:7px 10px;border-radius:8px;font-size:14.5px}
+.link:hover{color:var(--accent);background:var(--accent-soft)}
+.link[aria-current="page"]{color:var(--accent);background:var(--accent-soft);font-weight:700}
+.empty{padding:6px 12px;color:var(--muted);font-size:13px}
+.foot{padding:12px 22px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}
+
+/* main */
+.main{display:flex;flex-direction:column;min-width:0;min-height:0}
+.bar{display:flex;align-items:center;gap:12px;padding:10px 18px;border-bottom:1px solid var(--line);background:var(--bg);min-height:52px}
+.menu-btn{display:none;font:inherit;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:9px;width:38px;height:36px;cursor:pointer;font-size:18px;line-height:1}
+.crumb{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crumb small{font-weight:500;color:var(--muted);margin-left:6px}
+.tabs{display:flex;gap:4px;margin-left:auto;background:var(--side);border:1px solid var(--line);border-radius:10px;padding:3px}
+.tab{text-decoration:none;color:var(--muted);font-size:14px;padding:5px 14px;border-radius:7px}
+.tab:hover{color:var(--accent)}
+.tab[aria-current="page"]{background:var(--surface);color:var(--accent);font-weight:700;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.ext{color:var(--muted);text-decoration:none;font-size:13px;white-space:nowrap}
+.ext:hover{color:var(--accent)}
+.frame-wrap{flex:1;min-height:0;position:relative;background:var(--bg)}
+iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:var(--bg)}
+.msg{position:absolute;inset:0;display:none;place-items:center;text-align:center;color:var(--muted);padding:24px}
+.msg.show{display:grid}
+
+/* mobile */
+.backdrop{display:none}
+@media(max-width:860px){
+  .app{grid-template-columns:1fr}
+  .side{position:fixed;inset:0 auto 0 0;width:min(86vw,300px);z-index:20;transform:translateX(-102%);transition:transform .2s;box-shadow:4px 0 24px rgba(0,0,0,.18)}
+  body.nav-open .side{transform:none}
+  body.nav-open .backdrop{display:block;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:10}
+  .menu-btn{display:block}
+  .ext{display:none}
+  .bar{gap:8px;padding:8px 12px}
+  .crumb small{display:none}
+}
+@media print{.side,.bar{display:none}.app{display:block;height:auto}}
+</style>
+<script src="days.js"></script>
+</head>
+<body>
+<div class="app">
+  <aside class="side" id="side" aria-label="사이드 내비게이션">
+    <div class="brand">
+      <div class="eyebrow">LIPOLAB</div>
+      <h1 id="site-title">리포랩 3기</h1>
+      <p id="site-sub"></p>
+    </div>
+    <nav id="nav" aria-label="날짜별 목차"></nav>
+    <div class="foot">DAY 별로 요약본과 워크북을 볼 수 있습니다.<br><a href="design-system.html" target="_blank" rel="noopener" style="color:inherit">디자인 시스템 보기 ↗</a></div>
+  </aside>
+  <div class="backdrop" id="backdrop"></div>
+
+  <div class="main">
+    <header class="bar">
+      <button class="menu-btn" id="menu" type="button" aria-label="메뉴 열기">☰</button>
+      <div class="crumb" id="crumb"></div>
+      <div class="tabs" id="tabs"></div>
+      <a class="ext" id="ext" target="_blank" rel="noopener">새 창으로 열기 ↗</a>
+    </header>
+    <div class="frame-wrap">
+      <iframe id="frame" title="콘텐츠"></iframe>
+      <div class="msg" id="msg"><div><b>아직 등록된 콘텐츠가 없습니다.</b><br>days.js에 날짜를 추가해 주세요.</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var S = window.LIPOLAB_SITE || {title:"리포랩 3기", days:[]};
+  var days = S.days || [];
+  var $ = function(id){return document.getElementById(id)};
+  var nav=$('nav'), frame=$('frame'), msg=$('msg');
+
+  document.getElementById('site-title').textContent = S.title || '리포랩 3기';
+  document.getElementById('site-sub').textContent = S.subtitle || '';
+
+  function dayId(d){return 'day'+d.n}
+  function dayLabel(d){return 'DAY '+d.n}
+  function find(id){for(var i=0;i<days.length;i++){if(dayId(days[i])===id)return days[i]}return null}
+
+  function parse(){
+    var h=decodeURIComponent(location.hash.replace(/^#/,''));
+    var parts=h.split('/'); var d=find(parts[0]);
+    if(!d){d=days[0]||null}
+    if(!d)return {};
+    var p=null;
+    for(var i=0;i<d.pages.length;i++){if(d.pages[i].key===parts[1])p=d.pages[i]}
+    if(!p)p=d.pages[0];
+    return {day:d,page:p};
+  }
+
+  /* build nav */
+  var open={};
+  function buildNav(cur){
+    nav.innerHTML='';
+    if(!days.length){var e=document.createElement('div');e.className='empty';e.textContent='등록된 날짜가 없습니다.';nav.appendChild(e);return}
+    days.forEach(function(d){
+      var wrap=document.createElement('div');
+      wrap.className='day'+((open[dayId(d)]===undefined?(cur.day===d):open[dayId(d)])?' open':'');
+      var btn=document.createElement('button');
+      btn.type='button';btn.className='day-btn';
+      btn.setAttribute('aria-expanded',wrap.classList.contains('open'));
+      btn.innerHTML='<span>'+dayLabel(d)+'<span class="date">('+d.date+')</span></span><span class="caret"></span>';
+      btn.addEventListener('click',function(){
+        var o=wrap.classList.toggle('open');open[dayId(d)]=o;btn.setAttribute('aria-expanded',o);
+      });
+      var sub=document.createElement('div');sub.className='day-sub';
+      if(d.title){var t=document.createElement('div');t.className='day-title';t.textContent=d.title;sub.appendChild(t)}
+      d.pages.forEach(function(p){
+        var a=document.createElement('a');a.className='link';a.href='#'+dayId(d)+'/'+p.key;a.textContent=p.label;
+        if(cur.page===p&&cur.day===d)a.setAttribute('aria-current','page');
+        a.addEventListener('click',function(){document.body.classList.remove('nav-open')});
+        sub.appendChild(a);
+      });
+      wrap.appendChild(btn);wrap.appendChild(sub);nav.appendChild(wrap);
+    });
+  }
+
+  function render(){
+    var cur=parse();
+    buildNav(cur);
+    var tabs=$('tabs');tabs.innerHTML='';
+    if(!cur.day){msg.classList.add('show');frame.style.display='none';$('crumb').textContent='';$('ext').style.display='none';return}
+    msg.classList.remove('show');frame.style.display='';
+    $('crumb').innerHTML=dayLabel(cur.day)+'<small>('+cur.day.date+')</small>';
+    cur.day.pages.forEach(function(p){
+      var a=document.createElement('a');a.className='tab';a.href='#'+dayId(cur.day)+'/'+p.key;a.textContent=p.label;
+      if(p===cur.page)a.setAttribute('aria-current','page');
+      tabs.appendChild(a);
+    });
+    var cleanSrc=cur.page.file;
+    if(frame.getAttribute('data-src')!==cleanSrc){frame.setAttribute('data-src',cleanSrc);frame.src=cleanSrc}
+    var ext=$('ext');ext.href=cleanSrc;ext.style.display='';
+    document.title=dayLabel(cur.day)+' ('+cur.day.date+') · '+cur.page.label+' — '+(S.title||'리포랩 3기');
+  }
+
+  /* 디자인 시스템 강제 적용: 페이지가 공통 CSS를 직접 링크하지 않았어도(또는 태그를 다르게 달았어도)
+     같은 오리진에서 열리면 assets/lipolab.css를 뒤에 덧붙여 같은 디자인으로 보이게 합니다. */
+  frame.addEventListener('load',function(){
+    try{
+      var d=frame.contentDocument; if(!d||!d.head)return;
+      var linked=[].some.call(d.querySelectorAll('link[rel~="stylesheet"]'),function(l){return /assets\/lipolab\.css/.test(l.getAttribute('href')||'')});
+      if(!linked&&!d.querySelector('link[data-lp]')){
+        var l=d.createElement('link');l.rel='stylesheet';l.setAttribute('data-lp','1');
+        l.href=new URL('assets/lipolab.css',location.href).href;d.head.appendChild(l);
+      }
+      if(!d.querySelector('meta[name="viewport"]')){
+        var m=d.createElement('meta');m.name='viewport';m.content='width=device-width, initial-scale=1';d.head.appendChild(m);
+      }
+    }catch(e){}
+  });
+  window.addEventListener('hashchange',render);
+  $('menu').addEventListener('click',function(){document.body.classList.toggle('nav-open')});
+  $('backdrop').addEventListener('click',function(){document.body.classList.remove('nav-open')});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')document.body.classList.remove('nav-open')});
+  render();
+})();
+</script>
+</body>
+</html>
